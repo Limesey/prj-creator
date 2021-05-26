@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "projectcreator/cmd"
 
 func main() {
-	fmt.Println("Hello, world!")
+	cmd.Execute()
 }
