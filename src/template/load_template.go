@@ -29,8 +29,6 @@ type Template struct {
 func LoadTemplate(templateName string) (Template, error) {
 	fileName := fmt.Sprintf("../templates/%v.json", templateName)
 
-	fmt.Println(fileName)
-
 	if !util.IsFileExistent(fileName) {
 		return Template{}, errors.New("invalid template")
 	}
