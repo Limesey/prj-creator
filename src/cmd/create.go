@@ -4,6 +4,7 @@ import (
 	"log"
 	"projectcreator/project"
 	"projectcreator/template"
+	"projectcreator/util"
 
 	"github.com/spf13/cobra"
 )
@@ -11,8 +12,37 @@ import (
 func init() {
 	rootCmd.AddCommand(createCmd)
 
+	settings, err := util.GetSettings()
+
+	if err != nil {
+		createCmd.Flags().StringP("output", "o", ".", "Output directory")
+	} else {
+		defaults := settings.Defaults
+
+		git := defaults.Git
+		github := defaults.Github
+		dir := defaults.ProjectDir
+
+		if git {
+			createCmd.Flags().BoolP("no-git", "", git, "Don't initalize git repository (override default configuration)")
+		} else {
+			createCmd.Flags().BoolP("git", "g", git, "Initalize git repository (override default configuration)")
+		}
+
+		if github {
+			createCmd.Flags().BoolP("no-github", "", github, "Don't initalize GitHub repository (override default configuration)")
+		} else {
+			createCmd.Flags().BoolP("github", "", github, "Initialize GitHub repository (override default configuration)")
+		}
+
+		if dir != "" {
+			createCmd.Flags().StringP("output", "o", dir, "Output directory")
+		} else {
+			createCmd.Flags().StringP("output", "o", ".", "Output directory")
+		}
+	}
+
 	createCmd.Flags().StringP("template", "t", "default", "Template to create project")
-	createCmd.Flags().StringP("output", "o", ".", "Output directory")
 }
 
 var createCmd = &cobra.Command{
@@ -25,6 +55,7 @@ var createCmd = &cobra.Command{
 		name := args[0]
 		templateFlag, _ := cmd.Flags().GetString("template")
 		outputFlag, _ := cmd.Flags().GetString("output")
+		gitFlag, _ := cmd.Flags().GetBool("git")
 
 		templateData, err := template.LoadTemplate(templateFlag)
 
@@ -32,6 +63,12 @@ var createCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		project.Create(templateData, outputFlag, name)
+		createConfig := project.CreateConfig{
+			Git:              gitFlag,
+			GitHub:           false,
+			PublicRepository: false,
+		}
+
+		project.Create(templateData, outputFlag, name, createConfig)
 	},
 }
